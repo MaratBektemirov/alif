@@ -1,0 +1,24 @@
+{
+    "name": "alif",
+    "version": "1.3.4",
+    "author": "Marat Bektemirov",
+    "description": "Tool for fuzzy word search and approximate matching by AF-pairs",
+    "keywords": [
+        "approximate string matching",
+        "fuzzy search algorithm",
+        "fuzzy string matching",
+        "fuzzy word matching"
+    ],
+    "scripts": {
+        "test": "jest test.js",
+        "build": "tsc --build"
+    },
+    "dependencies": {
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "jest": "29.2.2",
+        "tslint": "6.1.3",
+        "typescript": "5.0.4"
+    }
+}

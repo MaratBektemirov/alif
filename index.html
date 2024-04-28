@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="index.js"></script>
+</head>
+
+<body>
+    <style>
+        body,
+        input,
+        textarea,
+        h1,
+        h2,
+        h3,
+        h4,
+        button,
+        figure,
+        section,
+        header,
+        main,
+        div,
+        span,
+        footer,
+        a {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            -webkit-font-smoothing: subpixel-antialiased;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        .content {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+
+    <div class="content">
+        <img src="logo.png">
+        <div class="scores"></div>
+    </div>
+
+    <script>
+        const result = (score, maxScore, templatePermanentLength, wordPermanentLength, x1) => {
+            return score/maxScore;
+        };
+
+        const abgd = new ABGD('russian');
+
+        const a = abgd.matchStr('день', 'день', result);
+        const b = abgd.matchStr('день', 'дня', result);
+        const c = abgd.matchStr('пескарь', 'пискарь', result);
+        const d = abgd.matchStr('охота', 'ахота', result);
+        const e = abgd.matchStr('ясный', 'ясная', result);
+        const f = abgd.matchStr('ромео', 'ромио', result);
+        const g = abgd.matchStr('машина', 'машинист', result);
+        const h = abgd.matchStr('отец', 'отца', result);
+        const i = abgd.matchStr('день', 'надень', result);
+        const j = abgd.matchStr('день', 'пень', result);
+        const z = abgd.matchStr('машина', 'мошына', result);
+
+        const scores = {
+            a, b, c, d, e, f, g, h, j, i, z
+        }
+
+        document.querySelector('.scores').innerHTML = JSON.stringify(scores);
+
+    </script>
+</body>
+
+</html>
