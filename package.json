@@ -1,6 +1,6 @@
 {
     "name": "alif",
-    "version": "1.3.4",
+    "version": "1.3.5",
     "author": "Marat Bektemirov",
     "description": "Tool for fuzzy word search and approximate matching by AF-pairs",
     "keywords": [

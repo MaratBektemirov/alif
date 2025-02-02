@@ -34,8 +34,8 @@ export class ABGD {
     alphabetLength: number;
     _toIndexedArray(consonant: any, vowel: any): Uint32Array;
     /**
-    * @param {string[][]} templateTuples - word tuple templates
-    * @param {string[]} tuple - matched word tuple
+    * @param {number[][][]} templateTuples - word tuple templates
+    * @param {number[][]} tuple - matched word tuple
     * @param {resultCallback} probabilityResult
     * @param {number} [x1]
     * @param {number} [x2]
@@ -45,10 +45,10 @@ export class ABGD {
     * @param {number} [x6]
     * @return {[number, number][]} probabilities
     */
-    getTuplesProbabilities(templateTuples: string[][], tuple: string[], probabilityResult: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): [number, number][];
+    getTuplesProbabilities(templateTuples: number[][][], tuple: number[][], probabilityResult: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): [number, number][];
     /**
-     * @param {string[]} templateTuple - tuple of word templates
-     * @param {string[]} tuple - tuple of matched words
+     * @param {number[][]} templateTuple - tuple of word templates
+     * @param {number[][]} tuple - tuple of matched words
      * @param {resultCallback} probabilityResult
      * @param {number} [x1]
      * @param {number} [x2]
@@ -58,20 +58,24 @@ export class ABGD {
      * @param {number} [x6]
      * @return {number} probability
      */
-    getTupleProbability(templateTuple: string[], tuple: string[], probabilityResult: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
+    getTupleProbability(templateTuple: number[][], tuple: number[][], probabilityResult: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
     /**
-     * @param {string} template - word template
-     * @param {string} word - matched word
-     * @param {resultCallback} result
-     * @param {number} [x1]
-     * @param {number} [x2]
-     * @param {number} [x3]
-     * @param {number} [x4]
-     * @param {number} [x5]
-     * @param {number} [x6]
-     * @return {number} score
-     */
-    matchStr(template: string, word: string, result: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
+     * @param {string[]} arrString
+     * @return {number[][]}
+    */
+    getTuple(arrString: string[]): number[][];
+    /**
+     * @param {string} str
+     * @param {number[]} codesArr
+     * @return {void}
+    */
+    updateCodesByString(str: string, codesArr: number[]): void;
+    /**
+     * @param {number[]} arr
+     * @param {number[]} codesArr
+     * @return {void}
+    */
+    updateCodes(arr: number[], codesArr: number[]): void;
     /**
      * @param {number} letter
      * @return {1 | 0}
@@ -83,8 +87,6 @@ export class ABGD {
      */
     letterIsVowel(letter: number): 1 | 0;
     /**
-     * @param {number[]} templateCodes
-     * @param {number[]} wordCodes
      * @param {number} [x1]
      * @param {number} [x2]
      * @param {number} [x3]
@@ -94,5 +96,31 @@ export class ABGD {
      * @param {resultCallback} result
      * @return {number}
      */
-    match(templateCodes: number[], wordCodes: number[], result: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
+    match(result: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
+    /**
+    * @param {number[]} templateCodesArr - template codes arr
+    * @param {number[]} wordCodesArr - words codes arr
+    * @param {resultCallback} result
+    * @param {number} [x1]
+    * @param {number} [x2]
+    * @param {number} [x3]
+    * @param {number} [x4]
+    * @param {number} [x5]
+    * @param {number} [x6]
+    * @return {number} score
+    */
+    matchCodes(templateCodesArr: number[], wordCodesArr: number[], result: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
+    /**
+     * @param {string} template - word template
+     * @param {string} word - matched word
+     * @param {resultCallback} result
+     * @param {number} [x1]
+     * @param {number} [x2]
+     * @param {number} [x3]
+     * @param {number} [x4]
+     * @param {number} [x5]
+     * @param {number} [x6]
+     * @return {number} score
+    */
+    matchStr(template: string, word: string, result: resultCallback, x1?: number, x2?: number, x3?: number, x4?: number, x5?: number, x6?: number): number;
 }

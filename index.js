@@ -6,13 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ABGD = void 0;
 
 const LANGUAGES = {
-    'russian' : {
-        vowel: ['а','и','о','у','ы','э','е','я','ь','ъ','ю'],
-        consonant: ['б','в','г','д','ж','з','й','к','л','м','н','п','р','с','т','ф','х','ц','ч','ш','щ',],
+    'russian': {
+        vowel: ['а', 'и', 'о', 'у', 'ы', 'э', 'е', 'я', 'ь', 'ъ', 'ю'],
+        consonant: ['б', 'в', 'г', 'д', 'ж', 'з', 'й', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ',],
     },
-    'english' : {
-        vowel: ['a','e','i','o','u','y'],
-        consonant: ['b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','x','y','z'],
+    'english': {
+        vowel: ['a', 'e', 'i', 'o', 'u', 'y'],
+        consonant: ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'],
     },
 }
 
@@ -38,12 +38,12 @@ const len8tab = new Uint32Array([
 function getLastBit(set) {
     let n = 0;
 
-    if (set >= 1<<16) {
+    if (set >= 1 << 16) {
         set >>= 16
         n = 16
     }
 
-    if (set >= 1<<8) {
+    if (set >= 1 << 8) {
         set >>= 8
         n += 8
     }
@@ -61,6 +61,10 @@ function firstBitToZero(set, firstBitIndex) {
 
 function max(x, y) {
     return x ^ ((x ^ y) & -(x < y));
+}
+
+function probabilitiesSort(a, b) {
+    return b[0] - a[0]
 }
 
 const wordSize = 32;
@@ -102,18 +106,17 @@ function fillSequencesAndGetMaxPowerSequence(cursor) {
 
         let sequence = templatePermanentMatches[cursor] & templatePermanentMatches[cursor - 1];
 
-        while (sequence)
-        {
+        while (sequence) {
             const index = getFirstBit(sequence);
-    
+
             addToIndexetSet(index);
             const orderedIndex = indexedSetIndexes[index];
-        
+
             templateIndexes[orderedIndex] = cursor;
-            sequencesPower[orderedIndex]++;        
+            sequencesPower[orderedIndex]++;
             deltas[orderedIndex] = cursor - index + delta;
             maxSequencePower = max(maxSequencePower, sequencesPower[orderedIndex]);
-    
+
             sequence = firstBitToZero(sequence, index);
         }
 
@@ -125,13 +128,16 @@ function fillSequencesAndGetMaxPowerSequence(cursor) {
 
 function getMaxSeqScore(index, maxSeqScore, power) {
     let seqScore = 0;
-    
+
     const delta = deltas[indexedSetSize];
-    const nullDelta = +(delta === 0);
-    
+    let nullDelta = 0;
+
+    if (delta === 0) {
+        nullDelta = 1;
+    }
+
     let i = 0;
-    while (i < power)
-    {
+    while (i < power) {
         i++;
         seqScore += addSeqScore(index++, delta, nullDelta);
     }
@@ -140,16 +146,16 @@ function getMaxSeqScore(index, maxSeqScore, power) {
 }
 
 function addSeqScore(index, delta, nullDelta) {
+    let s = 1 + nullDelta;
+
     const templateIndex = index - 1;
     const wordIndex = templateIndex - delta;
 
-    const templateVar = templateVariable[templateIndex];
-    const wordVar = wordVariable[wordIndex];
+    if (templateVariable[templateIndex] === wordVariable[wordIndex]) {
+        s++;
+    }
 
-    const templateVarExists = templateVar > 0;
-    const wordVarExists = wordVar > 0;
-
-    return 1 + (templateVar === wordVar) + (templateVarExists && wordVarExists) + (!templateVarExists && !wordVarExists) + nullDelta;
+    return s
 }
 
 /**
@@ -178,32 +184,32 @@ class ABGD {
         this.consonantLength = alphabet.consonant.length;
         this.alphabetLength = alphabet.consonant.length + alphabet.vowel.length;
     }
-    
+
     _toIndexedArray(consonant, vowel) {
         const consonantLength = consonant.length;
-    
+
         const arr = [];
-    
+
         let i = consonantLength;
         while (i) {
             const code = consonant[i - 1].charCodeAt(0);
             arr[code] = i;
             i--;
         }
-    
+
         i = vowel.length;
         while (i) {
             const code = vowel[i - 1].charCodeAt(0);
             arr[code] = i + consonantLength;
             i--;
         }
-    
+
         return new Uint32Array(arr);
     }
 
     /**
-    * @param {string[][]} templateTuples - word tuple templates
-    * @param {string[]} tuple - matched word tuple
+    * @param {number[][][]} templateTuples - word tuple templates
+    * @param {number[][]} tuple - matched word tuple
     * @param {resultCallback} probabilityResult
     * @param {number} [x1]
     * @param {number} [x2]
@@ -225,14 +231,14 @@ class ABGD {
             i++
         }
 
-        probabilities.sort((a, b) => b[0] - a[0])
+        probabilities.sort(probabilitiesSort)
 
         return probabilities
     }
 
     /**
-     * @param {string[]} templateTuple - tuple of word templates
-     * @param {string[]} tuple - tuple of matched words
+     * @param {number[][]} templateTuple - tuple of word templates
+     * @param {number[][]} tuple - tuple of matched words
      * @param {resultCallback} probabilityResult
      * @param {number} [x1]
      * @param {number} [x2]
@@ -243,87 +249,103 @@ class ABGD {
      * @return {number} probability
      */
     getTupleProbability(templateTuple, tuple, probabilityResult, x1, x2, x3, x4, x5, x6) {
+        const templateLength = templateTuple.length;
+        const wordLength = tuple.length;
+
         let probability = 0;
-    
-        const m = [];
-    
+
+        const matrix = [];
+
         let i = 0
-        while (i < templateTuple.length) {
-          const templateWord = templateTuple[i];
-    
-          let j = 0
-          while (j < tuple.length) {
-            const inputWord = tuple[j];
-            const p = this.matchStr(templateWord, inputWord, probabilityResult, x1, x2, x3, x4, x5, x6)
-            m.push([p,i,j])
-            j++
-          }
-    
-          i++
+        let k = 0
+        while (i < templateLength) {
+            let j = 0
+            while (j < wordLength) {
+                matrix[k] = [this.matchCodes(templateTuple[i], tuple[j], probabilityResult, x1, x2, x3, x4, x5, x6), i, j]
+                k++
+                j++
+            }
+
+            i++
         }
-    
-        m.sort((a,b) => b[0] - a[0])
+
+        matrix.sort(probabilitiesSort)
         i = 0
-    
+
         let countedTemplateItems = 0;
         let countedInputItems = 0;
-    
-        while (i < m.length) {
-          const m_i = m[i];
-    
-          const templateWord = 1 << m_i[1]
-          const inputWord = 1 << m_i[2]
-    
-          if ((countedTemplateItems & templateWord) || (countedInputItems & inputWord)) {
-            i++;
-            continue;
-          }
-    
-          countedTemplateItems |= templateWord
-          countedInputItems |= inputWord
-    
-          probability += m_i[0]
-    
-          i++
+
+        while (i < k) {
+            const m_i = matrix[i];
+
+            const templateWord = 1 << m_i[1]
+            const inputWord = 1 << m_i[2]
+
+            if ((countedTemplateItems & templateWord) || (countedInputItems & inputWord)) {
+                i++;
+                continue;
+            }
+
+            countedTemplateItems |= templateWord
+            countedInputItems |= inputWord
+
+            probability += m_i[0]
+
+            i++
         }
 
         if (probability > 0) {
-            return probability/templateTuple.length;
+            return probability / templateTuple.length;
         }
 
         return 0
     }
 
     /**
-     * @param {string} template - word template
-     * @param {string} word - matched word
-     * @param {resultCallback} result
-     * @param {number} [x1]
-     * @param {number} [x2]
-     * @param {number} [x3]
-     * @param {number} [x4]
-     * @param {number} [x5]
-     * @param {number} [x6]
-     * @return {number} score
-     */
-    matchStr(template, word, result, x1, x2, x3, x4, x5, x6) {
-        const wordStrLength = word.length;
+     * @param {string[]} arrString
+     * @return {number[][]}
+    */
+    getTuple(arrString) {
+        const tuple = new Array(arrString.length);
+
+        let i = 0
+        while (i < arrString.length) {
+            const str = arrString[i]
+            const codes = new Uint32Array(str.length)
+            this.updateCodesByString(str, codes)
+            tuple[i] = codes;
+            i++
+        }
+
+        return tuple;
+    }
+
+    /**
+     * @param {string} str
+     * @param {number[]} codesArr
+     * @return {void}
+    */
+    updateCodesByString(str, codesArr) {
+        const strLength = str.length;
         let i = 0;
-        while (i < wordStrLength) 
-        {
-            wordCodes[i] = word.charCodeAt(i);    
+        while (i < strLength) {
+            codesArr[i] = str.charCodeAt(i);
             i++;
         }
+    }
 
-        const templateStrLength = template.length;
-        i = 0;
-        while (i < templateStrLength) 
-        {
-            templateCodes[i] = template.charCodeAt(i);    
+    /**
+     * @param {number[]} arr
+     * @param {number[]} codesArr
+     * @return {void}
+    */
+    updateCodes(arr, codesArr) {
+        const arrLength = arr.length;
+        let i = 0;
+        while (i < arrLength) {
+            codesArr[i] = arr[i];
             i++;
         }
-
-        return this.match(templateCodes, wordCodes, result, x1, x2, x3, x4, x5, x6);
     }
 
     /**
@@ -333,7 +355,7 @@ class ABGD {
     letterIsConsonant(letter) {
         return +(letter <= this.consonantLength);
     }
-    
+
     /**
      * @param {number} letter
      * @return {1 | 0}
@@ -343,8 +365,6 @@ class ABGD {
     }
 
     /**
-     * @param {number[]} templateCodes
-     * @param {number[]} wordCodes
      * @param {number} [x1]
      * @param {number} [x2]
      * @param {number} [x3]
@@ -354,13 +374,12 @@ class ABGD {
      * @param {resultCallback} result
      * @return {number}
      */
-    match(templateCodes, wordCodes, result, x1, x2, x3, x4, x5, x6) {
+    match(result, x1, x2, x3, x4, x5, x6) {
         const alphabet = this.alphabet;
 
         let wordPermanentLength = 0;
         let i = 0;
-        while (wordCodes[i])
-        {
+        while (wordCodes[i]) {
             const letter = alphabet[wordCodes[i]];
 
             if (!letter) {
@@ -376,40 +395,38 @@ class ABGD {
                 wordVariable[wordPermanentLength] = nextLetter;
                 i++;
             }
-    
+
             wordPermanentLength++;
             i++;
         }
-    
+
         let templatePermanentLength = 0;
         i = 0;
-        while (templateCodes[i]) 
-        {
+        while (templateCodes[i]) {
             const letter = alphabet[templateCodes[i]];
 
             if (!letter) {
                 i++;
                 continue;
             }
-            
+
             templatePermanentMatches[templatePermanentLength] = wordPermanent[letter];
-    
+
             let nextLetter = 0;
 
             if (this.letterIsConsonant(letter) && this.letterIsVowel(nextLetter = alphabet[templateCodes[i + 1]])) {
                 templateVariable[templatePermanentLength] = nextLetter;
                 i++;
             }
-    
+
             templatePermanentLength++;
             i++;
         }
-  
+
         const maxSequencePower = fillSequencesAndGetMaxPowerSequence(templatePermanentLength - 1);
-    
+
         let maxSeqScore = 0;
-        while (indexedSetSize)
-        {
+        while (indexedSetSize) {
             indexedSetSize--;
 
             if (sequencesPower[indexedSetSize] === maxSequencePower) {
@@ -424,8 +441,7 @@ class ABGD {
         }
 
         let clearCursor = wordSize;
-        while (clearCursor)
-        {
+        while (clearCursor) {
             clearCursor--;
             wordVariable[clearCursor] = 0;
             templatePermanentMatches[clearCursor] = 0;
@@ -435,16 +451,53 @@ class ABGD {
         }
 
         clearCursor = this.alphabetLength;
-        while (clearCursor)
-        {
+        while (clearCursor) {
             wordPermanent[clearCursor] = 0;
             clearCursor--;
         }
-    
-        const maxScore = templatePermanentLength * templatePermanentLength * 4;
+
+        const maxScore = templatePermanentLength * templatePermanentLength * 3;
         const score = maxSeqScore * (maxSequencePower + 1);
 
         return result(score, maxScore, templatePermanentLength, wordPermanentLength, x1, x2, x3, x4, x5, x6);
+    }
+
+    /**
+    * @param {number[]} templateCodesArr - template codes arr
+    * @param {number[]} wordCodesArr - words codes arr
+    * @param {resultCallback} result
+    * @param {number} [x1]
+    * @param {number} [x2]
+    * @param {number} [x3]
+    * @param {number} [x4]
+    * @param {number} [x5]
+    * @param {number} [x6]
+    * @return {number} score
+    */
+    matchCodes(templateCodesArr, wordCodesArr, result, x1, x2, x3, x4, x5, x6) {
+        this.updateCodes(templateCodesArr, templateCodes);
+        this.updateCodes(wordCodesArr, wordCodes);
+
+        return this.match(result, x1, x2, x3, x4, x5, x6);
+    }
+
+    /**
+     * @param {string} template - word template
+     * @param {string} word - matched word
+     * @param {resultCallback} result
+     * @param {number} [x1]
+     * @param {number} [x2]
+     * @param {number} [x3]
+     * @param {number} [x4]
+     * @param {number} [x5]
+     * @param {number} [x6]
+     * @return {number} score
+    */
+    matchStr(template, word, result, x1, x2, x3, x4, x5, x6) {
+        this.updateCodesByString(word, wordCodes);
+        this.updateCodesByString(template, templateCodes);
+        
+        return this.match(result, x1, x2, x3, x4, x5, x6);
     }
 }
 
